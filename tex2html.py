@@ -1,6 +1,7 @@
 import os
 from supportFunctions import convert_line
 from myMath import Math
+from myItemize import Itemize
 
 
 def tex_to_html(tex_file, html_file):
@@ -13,6 +14,7 @@ def tex_to_html(tex_file, html_file):
 
     # set a math environment for when it's needed
     math = Math()
+    itemize = Itemize()
 
     # Open the HTML file
     with open(html_file, 'w') as file:
@@ -27,10 +29,13 @@ def tex_to_html(tex_file, html_file):
 
             # not begin nor end of equation env.
             math.resetActivation()
+            itemize.resetActivation()
 
             # Check for environment start
             if r'\begin{equation' in stripped_line:
                 math.activate()
+            elif r'\begin{itemize}' in stripped_line:
+                itemize.activate()
             elif r'\begin{table}' in stripped_line:
                 in_table = True
                 activation = True
@@ -39,7 +44,10 @@ def tex_to_html(tex_file, html_file):
                 activation = True
 
             # write the paragraphs which are not in strange env.
-            if not math.in_equation and not in_table and not in_figure:
+            if not math.in_equation \
+                and not itemize.in_itemize \
+                and not in_table \
+                and not in_figure:
                 
                 # if the line is empty, write a space
                 if stripped_line == "":
@@ -52,6 +60,8 @@ def tex_to_html(tex_file, html_file):
             # end is checked at the end: avoids to include end tag wrongly
             if r'\end{equation' in stripped_line:
                 math.deactivation = True
+            if r'\end{itemize' in stripped_line:
+                itemize.deactivation = True
             elif r'\end{table}' in stripped_line:
                 in_table = False
                 deactivation = True
@@ -62,6 +72,10 @@ def tex_to_html(tex_file, html_file):
             # when not \begin or \end, but while in math mode, write the line            
             if math.in_equation:
                 math.write(file, stripped_line)
+
+            if itemize.in_itemize:
+                itemize.write(file, stripped_line)
+
 
         if math.containsAnEquation:
             math.createScript(file)

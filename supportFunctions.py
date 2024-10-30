@@ -21,6 +21,9 @@ def convert_line(line):
             result.append('</i>')
             italic_active = False
             i += 1
+        elif line[i] == '$':
+            result.append('$$')
+            i += 1
         else:
             result.append(line[i])
             i += 1
