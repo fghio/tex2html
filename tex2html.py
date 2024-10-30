@@ -38,6 +38,11 @@ def tex_to_html(tex_file, html_file):
     with open(tex_file, 'r') as file:
         lines = file.readlines()
 
+    # useful key for Equation
+    containsAnEquation = False
+    eqTagID = 0
+    completeEquation = ""
+
     # Open the HTML file
     with open(html_file, 'w') as file:
 
@@ -56,6 +61,8 @@ def tex_to_html(tex_file, html_file):
             if r'\begin{equation' in stripped_line:
                 in_equation = True
                 activation = True
+                containsAnEquation = True
+                eqTagID = eqTagID +1 
             elif r'\begin{table}' in stripped_line:
                 in_table = True
                 activation = True
@@ -74,7 +81,6 @@ def tex_to_html(tex_file, html_file):
 
             # end is checked at the end: avoids to include end tag wrongly
             if r'\end{equation' in stripped_line:
-                in_equation = False
                 deactivation = True
             elif r'\end{table}' in stripped_line:
                 in_table = False
@@ -84,12 +90,20 @@ def tex_to_html(tex_file, html_file):
                 deactivation = True
 
             # when not \begin or \end, but while in math mode, write the line            
-            if in_equation and not (activation or deactivation):
-                    # treatment of a possible label
-                    if r'\label' in stripped_line:
-                        stripped_line = stripped_line.split(r'\label')[0]
-                    else:
-                        file.write(f"$${stripped_line}$$\n")
+            if in_equation and not activation:
+                if not deactivation:
+                    completeEquation = completeEquation + " " + stripped_line
+                else:
+                    print("nowWriting")
+                    file.write(f"$${completeEquation} \\tag{ {eqTagID} }$$\n")
+                    completeEquation = ""
+                    in_equation = False
+
+
+        if containsAnEquation:
+            file.write(f"\n<script id=\"MathJax-script\" async src=\"https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js\"></script> \n")
+            
+
 
 
 
