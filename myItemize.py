@@ -1,15 +1,18 @@
 from myMath import Math
+from myFigure import Figure
 
 class Itemize:
     def __init__(
         self, 
         math : Math,
+        figure : Figure,
         in_itemize = False,
         activation = False,
         deactivation = False,
         counter = 0
     ):
         self.math = math
+        self.figure = figure
         self.in_itemize = in_itemize
         self.activation = activation
         self.deactivation = deactivation
@@ -33,9 +36,10 @@ class Itemize:
             file.write(f"</li>\n")
             file.write(f"</ul>\n")
             self.counter = 0
+            self.in_itemize = False
 
         else:
-            if not self.math.in_equation:
+            if not self.math.in_equation and not self.figure.in_figure:
 
                 if self.counter == 0:
                     stripped_line = stripped_line[len("\\item"):].strip()
@@ -49,8 +53,3 @@ class Itemize:
                         file.write(f"<li>{stripped_line}")
                     else:  
                         file.write(f" {stripped_line}")
-
-                
-                    
-                
-        

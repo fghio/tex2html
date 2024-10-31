@@ -2,6 +2,7 @@ import os
 from supportFunctions import convert_line
 from myMath import Math
 from myItemize import Itemize
+from myFigure import Figure
 
 
 def tex_to_html(tex_file, html_file):
@@ -14,15 +15,15 @@ def tex_to_html(tex_file, html_file):
 
     # set a math environment for when it's needed
     math = Math()
-    itemize = Itemize(math)
+    figure = Figure()
+    itemize = Itemize(math=math,figure=figure)
 
     # Open the HTML file
     with open(html_file, 'w') as file:
 
         # these go away when defined in respective class at init
         in_table = False
-        in_figure = False
-
+        
         # iterate over the lines
         for line in lines:
             stripped_line = line.strip()
@@ -30,24 +31,24 @@ def tex_to_html(tex_file, html_file):
             # not begin nor end of equation env.
             math.resetActivation()
             itemize.resetActivation()
+            figure.resetActivation()
 
             # Check for environment start
-            if r'\begin{equation' in stripped_line:
+            if r'\begin{equation'   in stripped_line:
                 math.activate()
+            elif r'\begin{figure}'  in stripped_line:
+                figure.activate()
             elif r'\begin{itemize}' in stripped_line:
                 itemize.activate()
-            elif r'\begin{table}' in stripped_line:
+            elif r'\begin{table}'   in stripped_line:
                 in_table = True
                 activation = True
-            elif r'\begin{figure}' in stripped_line:
-                in_figure = True
-                activation = True
-
+            
             # write the paragraphs which are not in strange env.
             if not math.in_equation \
                 and not itemize.in_itemize \
-                and not in_table \
-                and not in_figure:
+                and not figure.in_figure \
+                and not in_table:
                 
                 # if the line is empty, write a space
                 if stripped_line == "":
@@ -58,15 +59,14 @@ def tex_to_html(tex_file, html_file):
 
 
             # end is checked at the end: avoids to include end tag wrongly
-            if r'\end{equation' in stripped_line:
-                math.deactivation = True
-            elif r'\end{itemize' in stripped_line:
-                itemize.deactivation = True
-            elif r'\end{table}' in stripped_line:
-                in_table = False
-                deactivation = True
+            if r'\end{equation'  in stripped_line:
+                math.deactivation    = True
             elif r'\end{figure}' in stripped_line:
-                in_figure = False
+                figure.deactivation  = True
+            elif r'\end{itemize}' in stripped_line:
+                itemize.deactivation = True
+            elif r'\end{table}'  in stripped_line:
+                in_table = False
                 deactivation = True
 
             # when not \begin or \end, but while in math mode, write the line            
@@ -77,6 +77,9 @@ def tex_to_html(tex_file, html_file):
             # \end{equation} in the output file
             if itemize.in_itemize and not math.deactivation:
                 itemize.write(file, stripped_line)
+
+            if figure.in_figure:
+                figure.write(file, stripped_line)
 
 
         if math.containsAnEquation:
