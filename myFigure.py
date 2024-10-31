@@ -28,7 +28,8 @@ class Figure:
         if r'\includegraphics' in stripped_line:
             startFigPath = stripped_line.find("{") + 1
             endFigPath = stripped_line.find("}")
-            self.figureName = stripped_line[startFigPath:endFigPath].strip()
+            self.figureName = stripped_line[startFigPath:endFigPath-4].strip()
+            self.figureName += ".webp"
 
 #            startDim = stripped_line.find("[") + 1
 #            endFigDim = stripped_line.find("]")
