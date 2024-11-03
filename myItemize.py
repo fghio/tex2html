@@ -9,6 +9,7 @@ class Itemize:
         in_itemize = False,
         activation = False,
         deactivation = False,
+        isEnumeration = False,
         counter = 0
     ):
         self.math = math
@@ -16,6 +17,7 @@ class Itemize:
         self.in_itemize = in_itemize
         self.activation = activation
         self.deactivation = deactivation
+        self.isEnumeration = isEnumeration
         self.counter = counter
 
     def resetActivation(self):
@@ -29,12 +31,20 @@ class Itemize:
     def write(self, file, stripped_line):
         
         if self.activation:
-            file.write(f"<ul>\n")
+            if self.isEnumeration:
+                file.write(f"<ol>\n")
+            else:
+                file.write(f"<ul>\n")
+    
             file.write(f"<li>")
-                   
+
         elif self.deactivation:
             file.write(f"</li>\n")
-            file.write(f"</ul>\n")
+            
+            if self.isEnumeration:
+                file.write(f"</ol>\n")
+            else:
+                file.write(f"</ul>\n")
             self.counter = 0
             self.in_itemize = False
 

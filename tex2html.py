@@ -38,8 +38,10 @@ def tex_to_html(tex_file, html_file):
                 math.activate()
             elif r'\begin{figure}'  in stripped_line:
                 figure.activate()
-            elif r'\begin{itemize}' in stripped_line:
+            elif r'\begin{itemize}' in stripped_line or r'\begin{enumerate}' in stripped_line:
                 itemize.activate()
+                if r'\begin{enumerate}' in stripped_line:
+                    itemize.isEnumeration = True
             elif r'\begin{table}'   in stripped_line:
                 in_table = True
                 activation = True
@@ -63,8 +65,9 @@ def tex_to_html(tex_file, html_file):
                 math.deactivation    = True
             elif r'\end{figure}' in stripped_line:
                 figure.deactivation  = True
-            elif r'\end{itemize}' in stripped_line:
+            elif r'\end{itemize}' in stripped_line or r'\end{enumerate}' in stripped_line:
                 itemize.deactivation = True
+                itemize.isEnumeration = False
             elif r'\end{table}'  in stripped_line:
                 in_table = False
                 deactivation = True
