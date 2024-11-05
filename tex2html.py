@@ -3,7 +3,7 @@ from supportFunctions import convert_line
 from myMath import Math
 from myItemize import Itemize
 from myFigure import Figure
-
+from myTable import Table
 
 def tex_to_html(tex_file, html_file):
 
@@ -17,13 +17,11 @@ def tex_to_html(tex_file, html_file):
     math = Math()
     figure = Figure()
     itemize = Itemize(math=math,figure=figure)
+    table = Table()
 
     # Open the HTML file
     with open(html_file, 'w') as file:
 
-        # these go away when defined in respective class at init
-        in_table = False
-        
         # iterate over the lines
         for line in lines:
             stripped_line = line.strip()
@@ -32,6 +30,7 @@ def tex_to_html(tex_file, html_file):
             math.resetActivation()
             itemize.resetActivation()
             figure.resetActivation()
+            table.resetActivation()
 
             # Check for environment start
             if r'\begin{equation'   in stripped_line:
@@ -43,14 +42,14 @@ def tex_to_html(tex_file, html_file):
                 if r'\begin{enumerate}' in stripped_line:
                     itemize.isEnumeration = True
             elif r'\begin{table}'   in stripped_line:
-                in_table = True
-                activation = True
+                table.activate()
+
             
             # write the paragraphs which are not in strange env.
             if not math.in_equation \
                 and not itemize.in_itemize \
                 and not figure.in_figure \
-                and not in_table:
+                and not table.in_table:
                 
                 # if the line is empty, write a space
                 if stripped_line == "":
@@ -69,8 +68,8 @@ def tex_to_html(tex_file, html_file):
                 itemize.deactivation = True
                 itemize.isEnumeration = False
             elif r'\end{table}'  in stripped_line:
-                in_table = False
-                deactivation = True
+                table.deactivation = True
+
 
             # when not \begin or \end, but while in math mode, write the line            
             if math.in_equation:
@@ -84,11 +83,17 @@ def tex_to_html(tex_file, html_file):
             if figure.in_figure:
                 figure.write(file, stripped_line)
 
+            if table.in_table:
+                table.write(file, stripped_line)
+
+
+        if table.containsATable:
+            table.createStyle(file)    
 
         if math.containsAnEquation:
             math.createScript(file)
-            
 
+        
 
 
 
