@@ -48,7 +48,6 @@ def tex_to_html(tex_file, html_file):
                 table.activate()
             elif r'\begin{verbatim}' in stripped_line:
                 coding.activate()
-                
             
             # write the paragraphs which are not in strange env.
             if not math.in_equation \
@@ -98,12 +97,14 @@ def tex_to_html(tex_file, html_file):
                 coding.write(file, line) #to preserve the indentations
 
 
+        if table.containsATable:
+            table.createStyle(file)    
+
         if math.containsAnEquation:
             math.createScript(file)
-            
+
         if coding.containsACode:
             coding.createScript(file)
-
 
 
 
