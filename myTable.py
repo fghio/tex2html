@@ -95,6 +95,7 @@ class Table:
 
 
     def createStyle(self,file):
+        file.write("<style>\n")
         file.write("th,\n")
         file.write("td {\n")
         file.write("  border: 1px solid rgb(160 160 160);\n")
