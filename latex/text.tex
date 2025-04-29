@@ -1,86 +1,80 @@
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+A causa del tipo di lavoro che faccio, mi risulta molto più facile produrre testo in formato latex piuttosto che in HTML. Questo è ottimo per la stesura di documenti scientifici, ma non è altrettanto positivo per la creazione rapida di articoli da integrare in questo sito. La problematica è particolarmente rilevante quando il post è lungo e complesso, o contiene equazioni, figure, tabelle o porzioni di codice come sarà in questo caso. Ahimè, anche la scrittura in formato markdown è tediosa. O almeno lo è per me che non sono abituato a usare quel formato. 
 
-\begin{figure}
-\centering
-\includegraphics[width=0.5\textwidth]{cat.png}
-\caption{A caption.}
-\end{figure}
+Dunque, per facilitarmi la scrittura di post da aggiungere alla sezione progetti e blog, ho pensato di costruire un convertitore di testo da latex a HTML usando python: "tex2html". 
 
-Sed \textbf{ut perspiciatis unde} omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. 
+Due note. La prima: probabilmente esiste già un tool del genere, ma ho ritenuto più veloce scriverne uno da zero, piuttosto che cercare di fare funzionare (o anche solo adattare la mia scrittura ad) un tool esistente online. Seconda nota: questo post avrà un po' l'effetto "Inception". In effetti, la scrittura HTML di questo post deriva dall'output diretto del tool qui presentato. Del resto, quale modo migliore per testarlo?!
 
+Partiamo dal principio. Non si spiega qui cosa sia un documento latex, o come si scriva un documento latex. Esistono fior fior di esempi per quello, e l'utente meno esperto è invitato a guardare uno di questi %LINK ENK.
+Qui si fa riferimento semplicemente alle caratteristiche principali che un documento latex contiene. Possiamo suddividere il documento in due grandi parti: il preambolo e il corpo del testo. Il preambolo contiene almeno la dichiarazione di formato del documento, il caricamento dei pacchetti e la definizione di eventuali macro. Il corpo del testo (più interessante per noi in questo caso) può contenere: testo, immagini, tabelle, elenchi puntati o numerati, code snippets, ecc. 
+
+Partiamo da un documento latex pulito, e assumiamo che \textit{main.tex} contenga quanto segue:
+
+%%% dichiarazione del preambolo e del corpo con include.
+
+È evidente che l'html che andremo a generare come output della conversione non deve essere suscettibile al formato del documento. Al contrario, il formato dell'html è dipendente dal container nel quale viene messo, il quale a sua volta è dipendente dalla struttura del sito web. Non sono nemmeno interessanti ai fini della conversione i pacchetti da caricare nel documento latex. Dunque, per generalizzare la conversione latex-to-html e facilitare la generazione di un output utilizzabile nel sito web, cerchiamo di limitare la creazione di macro (soprattutto legate alle equazioni). 
+
+Ciò che rimane da convertire, quindi, è il contenuto del file "text.tex" nel corpo del documento latex; e sempre considerando l'"inception" di cui sopra, la costruzione di questo articolo viene proprio dal file "text.tex" appena menzionato.
+
+Partiamo da un caso semplice: il file contiene solo del testo plain (come molti di questi paragrafi). 
+
+Scriviamo un codice python che legga il file text.tex e scriva l'output in \textit{output.html}. La funzione python deve quindi: 1) procedere alla lettura di ogni riga contenuta nel file tex di input; 2) fare precedere a questa stessa < p >; 3) far concludere la stessa con < / p >. Alla dichiarazione del paragrafo (< p >) si può aggiungere dello stile CSS a piacere che sia compatibile con lo stile usato nel website di riferimento o nel quale inserire l'output prodotto. Un esempio è dato di seguito:
+
+%%% esempio <p align="justify">
+
+C'è da dire che le righe possono contenere testo in \textbf{grassetto} (text bold), \textit{corsivo} (text italic), oppure \textbf{\textit{combinazioni}} di questi stessi. Per questo conviene creare una funzione che: 1) faccia un parse delle righe; 2) capisca quale setting è attivo; 3) sostituisca la funzione latex con il corrispettivo HTML; infine 4) chiuda lo stile (bold, italic, ...) quando non più in uso. Con questo semplice escamotage si riesce quindi a trattare un testo generico, senza figure, tabelle, elenchi, equazioni, ... esattamente come questo.
+
+Il passo successivo è il trattamento di formule. Ovviamente il testo può contenere formule matematiche o equazioni scritte usando: a) il simbolo del dollaro a delimitazione, o b) un wrapper per l'ambiente equation. Sapendo che il testo prodotto deve essere facilmente interpretabile in ambiente web, la seconda delle due opzioni è quella da preferirsi. Il codice deve quindi essere in grado di interpretare un'equazione del tipo:
 \begin{equation}
-\frac{d\rho}{dt} 
-+ \nabla \cdot \left( \rho \mathbf{U} \right) = 0 
-\label{eq:eqn1}
+\nabla \cdot \mathbf{u} = 0
 \end{equation}
 
-At vero eos Eq. \eqref{eq:eqn1} et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati \textbf{cupiditate non provident}, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. \textit{Et harum quidem rerum facilis est et expedita distinctio.} Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor $u = 5$ repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus \textit{\textbf{asperiores repellat}}.
+producendo un output come quello che si sta ora visualizzando a schermo. Per una corretta interpretazione dell'equazione, è sufficiente andare a controllare all'interno delle righe di testo latex se è presente la dicitura "begin equation". In caso positivo, si attiverà l'ambiente matematico per HTML fino alla successiva chiusura quando il reader incontrerà la formula "end equation". Tutto ciò che è contenuto in ambiente equation (latex) può quindi essere convertito (in HTML) ottenendo il risultato mostrato in Equazione 1. 
 
-\begin{enumerate}
-\item a very long 
-on two lines.
+Ovviamente, se almeno una equazione è presente nel testo, è necessario che al termine della creazione del testo html venga aggiunta anche la riga che carica il jason di MathJax. Quest'ultimo permette la visualizzazione online di formule matematiche. 
 
-\item b very very long 
- on three
- lines.
-
-\item c very short but 
- with an equation 
-
-\begin{equation}
-A \cdot x = b
-\label{eq:eqinItem1}
-\end{equation}
-
-\item final one with figure.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.5\textwidth]{cat.png}
-\caption{A caption.}
-\end{figure}
-
-\end{enumerate}
-
-Und 
-
+Andando nel dettaglio dell'implementazione, tex2html è un codice python contenente classi.
+Dunque, per l'ambiente matematico, è richiesto l'import della classe Math, e l'uso della stessa per
 \begin{itemize}
-\item a very long 
-on two lines.
-
-\item b very very long 
- on three
- lines.
-
-\item c very short but 
- with an equation 
-
-\begin{equation}
-A \cdot x = b
-\label{eq:eqinItem2}
-\end{equation}
-
-\item final one with figure.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.5\textwidth]{cat.png}
-\caption{A caption.}
-\end{figure}
-
+\item attivare l'ambiente equation in HTML; 
+\item trascrivere le equazioni in formato compatibile con MathJax; 
+\item chiudere l'ambiente stesso quando l'equazione è terminata. 
 \end{itemize}
 
-Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea \textbf{commodi consequatur?} Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?
+Particolare attenzione va prestata anche alla numerazione delle equazioni, in modo da poterne poi fare un riferimento puntuale nel testo. 
 
-\begin{table}[]
+Nel paragrafo precedente spicca un'ulteriore feature! L'elenco numerato (o puntato). Anche questa è una feature fondamentale per i miei testi e che necessariamente deve poter essere trattata con il tool qui proposto. Il funzionamento è del tutto simile a quanto visto per l'ambiente equation: viene caricata la classe in grado di trattare elenchi puntati e numerati in tex2html; il file viene letto riga per riga; il corrispondente ambiente HTML viene attivato quando un elenco è presente nel testo; il contenuto viene correttamente suddiviso in items; l'ambiente viene chiuso quando vi è una chiusura dello stesso nel file latex. 
+
+L'integrazione di ambiente matematico e di elenchi è una naturale evoluzione. Elenchi puntati o numerati possono avere equazioni al loro interno. Tali situazioni vengono gestite dal tool qui proposto con cross-check di attivazione e disattivazione degli ambienti, ben consapevoli che tipicamente \textit{equation} può essere integrato in \textit{itemize} o \textit{enumerate}, mentre il contrario non è vero.
+
+Lo step successivo è l'ambiente figure. Figure possono essere inglobate nel testo latex usando includeGraphics. L'ambiente figure è attivato e disattivato come mostrato precedentemente per equation e itemize. La figura possiede la sua caption, la sua label. Più difficoltosa è la gestione della dimensione delle immagini, che in questo caso è lasciata al lettore (e sviluppatore) interessato perchè fortemente dipendente dalla struttura web entro le quali devono essere inserite. Proponiamo comunque un esempio qui di seguito, sapendo bene che il path per l'immagine potrebbe essere diverso tra quanto prodotto con il tool qui proposto, e la struttura della pagina web. 
+
+\begin{figure}
 \centering
-\begin{tabular}{l c c c l l l}
-\hline
-Patch  & $U_x$ [m/s] & $p$ [Pa] & $T_{in}$ [K] & $Y_{C_8 H_{18}}$ [-]  & $Y_{O_2}$ [-] & $Y_{N_2}$ [-] \\
-\hline
-\hline
-Inlet  & 3.0         & -        & 1000         & aaa                & bbb           & ccc           \\
-Outlet & -           & 101325   & -            & aaa2               & bbb2          & ccc2          \\
-\hline
+\includegraphics[width=0.5\textwidth]{cat.png}
+\caption{Un esempio di immagine, con un esempio di caption.}
+\end{figure}
+
+Si presti attenzione al fatto che, sapendo bene come in ambito web tutto sia sequenziale, e non essendoci bisogno di riposizionamento delle figure, nessuna particolare indicazione è stata data accanto alla dichiarazione dell'ambiente figure (e.g. [!ht]). Tali indicazioni, comunque, non sono supportate nel tool di conversione qui proposto.
+
+Passiamo agli ultimi due aspetti fondamentali: tabelle e script (agoritmi). Il primo dei due è estremamente facile. Un esempio di tabella si trova qui di seguito.
+
+\begin{table}
+\caption{My lovely table.}
+\begin{tabular}{c c c}
+Header1 & Header2 & Header3 \\
+Value1  & Value2  & $\nabla \cdot \mathbf{u} = 0$ \\
+Value4  & Value5  & Value6 \\
 \end{tabular}
 \end{table}
+
+Come fatto per gli ambienti precedenti, l'ambiente table (e il sottoambiente tabular) viene riconosciuto, attivato per la costruzione in HTML, e chiuso (sia in latex che in HTML) sulla base delle funzioni begin ed end. Ovviamente le celle all'interno dell'ambiente possono contenere delle equazioni matematiche in riga (ovvero quelle delimitate da simboli di dollaro). Possiamo quindi passare ogni linee (o il contenuto di ogni cella) attraverso un filtro che permette di contrassegnare tali celle come contenenti ambiente matematico. Le equazioni vengono convertite in formato HTML, ottenendo il risultato mostrato nell'esempio qui sopra. La tabella possiede la sua caption, ed è quindi riprodotta correttamente (e in modo generale), dipendentemente dai settaggi css imposti nel sito web dentro al quale viene inserita.
+
+Ultimo step: gli algoritmi. Per niente facile. La spiegazione sarà anche un po' complessa. Ma vediamo subito un esempio:
+\begin{verbatim}
+from pygments.formatters import HtmlFormatter
+from pygments.util import ClassNotFound
+
+class Coding:
+    def __init__(self):
+        self.containsACode = False
+\end{verbatim}

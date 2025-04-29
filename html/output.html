@@ -1,87 +1,165 @@
 <p align="justify">
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+A causa del tipo di lavoro che faccio, mi risulta molto più facile produrre testo in formato latex piuttosto che in HTML. Questo è ottimo per la stesura di documenti scientifici, ma non è altrettanto positivo per la creazione rapida di articoli da integrare in questo sito. La problematica è particolarmente rilevante quando il post è lungo e complesso, o contiene equazioni, figure, tabelle o porzioni di codice come sarà in questo caso. Ahimè, anche la scrittura in formato markdown è tediosa. O almeno lo è per me che non sono abituato a usare quel formato.
 </p>
-
-
-<img src="cat.webp" class="box px-0 py-0 ml-auto mr-auto" width="900" title="A caption." alt="A caption.">
 
 <p align="justify">
-Sed <b>ut perspiciatis unde</b> omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.
+Dunque, per facilitarmi la scrittura di post da aggiungere alla sezione progetti e blog, ho pensato di costruire un convertitore di testo da latex a HTML usando python: "tex2html".
 </p>
-
-$$ \frac{d\rho}{dt} + \nabla \cdot \left( \rho \mathbf{U} \right) = 0 \label{eq:eqn1} \tag{1}$$
 
 <p align="justify">
-At vero eos Eq. \eqref{eq:eqn1} et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati <b>cupiditate non provident</b>, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. <i>Et harum quidem rerum facilis est et expedita distinctio.</i> Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor $$u = 5$$ repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus <i><b>asperiores repellat</b></i>.
+Due note. La prima: probabilmente esiste già un tool del genere, ma ho ritenuto più veloce scriverne uno da zero, piuttosto che cercare di fare funzionare (o anche solo adattare la mia scrittura ad) un tool esistente online. Seconda nota: questo post avrà un po' l'effetto "Inception". In effetti, la scrittura HTML di questo post deriva dall'output diretto del tool qui presentato. Del resto, quale modo migliore per testarlo?!
 </p>
-
-<ol>
-<li>a very long on two lines. </li>
-<li>b very very long on three lines. </li>
-<li>c very short but with an equation $$ A \cdot x = b \label{eq:eqinItem1} \tag{2}$$
- </li>
-<li>final one with figure. 
-<img src="cat.webp" class="box px-0 py-0 ml-auto mr-auto" width="900" title="A caption." alt="A caption.">
- </li>
-</ul>
 
 <p align="justify">
-Und
+Partiamo dal principio. Non si spiega qui cosa sia un documento latex, o come si scriva un documento latex. Esistono fior fior di esempi per quello, e l'utente meno esperto è invitato a guardare uno di questi %LINK ENK.
+</p>
+<p align="justify">
+Qui si fa riferimento semplicemente alle caratteristiche principali che un documento latex contiene. Possiamo suddividere il documento in due grandi parti: il preambolo e il corpo del testo. Il preambolo contiene almeno la dichiarazione di formato del documento, il caricamento dei pacchetti e la definizione di eventuali macro. Il corpo del testo (più interessante per noi in questo caso) può contenere: testo, immagini, tabelle, elenchi puntati o numerati, code snippets, ecc.
 </p>
 
+<p align="justify">
+Partiamo da un documento latex pulito, e assumiamo che <i>main.tex</i> contenga quanto segue:
+</p>
+
+<p align="justify">
+%%% dichiarazione del preambolo e del corpo con include.
+</p>
+
+<p align="justify">
+È evidente che l'html che andremo a generare come output della conversione non deve essere suscettibile al formato del documento. Al contrario, il formato dell'html è dipendente dal container nel quale viene messo, il quale a sua volta è dipendente dalla struttura del sito web. Non sono nemmeno interessanti ai fini della conversione i pacchetti da caricare nel documento latex. Dunque, per generalizzare la conversione latex-to-html e facilitare la generazione di un output utilizzabile nel sito web, cerchiamo di limitare la creazione di macro (soprattutto legate alle equazioni).
+</p>
+
+<p align="justify">
+Ciò che rimane da convertire, quindi, è il contenuto del file "text.tex" nel corpo del documento latex; e sempre considerando l'"inception" di cui sopra, la costruzione di questo articolo viene proprio dal file "text.tex" appena menzionato.
+</p>
+
+<p align="justify">
+Partiamo da un caso semplice: il file contiene solo del testo plain (come molti di questi paragrafi).
+</p>
+
+<p align="justify">
+Scriviamo un codice python che legga il file text.tex e scriva l'output in <i>output.html</i>. La funzione python deve quindi: 1) procedere alla lettura di ogni riga contenuta nel file tex di input; 2) fare precedere a questa stessa < p >; 3) far concludere la stessa con < / p >. Alla dichiarazione del paragrafo (< p >) si può aggiungere dello stile CSS a piacere che sia compatibile con lo stile usato nel website di riferimento o nel quale inserire l'output prodotto. Un esempio è dato di seguito:
+</p>
+
+<p align="justify">
+%%% esempio <p align="justify">
+</p>
+
+<p align="justify">
+C'è da dire che le righe possono contenere testo in <b>grassetto</b> (text bold), <i>corsivo</i> (text italic), oppure <b><i>combinazioni</b></i> di questi stessi. Per questo conviene creare una funzione che: 1) faccia un parse delle righe; 2) capisca quale setting è attivo; 3) sostituisca la funzione latex con il corrispettivo HTML; infine 4) chiuda lo stile (bold, italic, ...) quando non più in uso. Con questo semplice escamotage si riesce quindi a trattare un testo generico, senza figure, tabelle, elenchi, equazioni, ... esattamente come questo.
+</p>
+
+<p align="justify">
+Il passo successivo è il trattamento di formule. Ovviamente il testo può contenere formule matematiche o equazioni scritte usando: a) il simbolo del dollaro a delimitazione, o b) un wrapper per l'ambiente equation. Sapendo che il testo prodotto deve essere facilmente interpretabile in ambiente web, la seconda delle due opzioni è quella da preferirsi. Il codice deve quindi essere in grado di interpretare un'equazione del tipo:
+</p>
+$$ \nabla \cdot \mathbf{u} = 0 \tag{1}$$
+
+<p align="justify">
+producendo un output come quello che si sta ora visualizzando a schermo. Per una corretta interpretazione dell'equazione, è sufficiente andare a controllare all'interno delle righe di testo latex se è presente la dicitura "begin equation". In caso positivo, si attiverà l'ambiente matematico per HTML fino alla successiva chiusura quando il reader incontrerà la formula "end equation". Tutto ciò che è contenuto in ambiente equation (latex) può quindi essere convertito (in HTML) ottenendo il risultato mostrato in Equazione 1.
+</p>
+
+<p align="justify">
+Ovviamente, se almeno una equazione è presente nel testo, è necessario che al termine della creazione del testo html venga aggiunta anche la riga che carica il jason di MathJax. Quest'ultimo permette la visualizzazione online di formule matematiche.
+</p>
+
+<p align="justify">
+Andando nel dettaglio dell'implementazione, tex2html è un codice python contenente classi.
+</p>
+<p align="justify">
+Dunque, per l'ambiente matematico, è richiesto l'import della classe Math, e l'uso della stessa per
+</p>
 <ul>
-<li>a very long on two lines. </li>
-<li>b very very long on three lines. </li>
-<li>c very short but with an equation $$ A \cdot x = b \label{eq:eqinItem2} \tag{3}$$
- </li>
-<li>final one with figure. 
-<img src="cat.webp" class="box px-0 py-0 ml-auto mr-auto" width="900" title="A caption." alt="A caption.">
- </li>
+<li>attivare l'ambiente equation in HTML;</li>
+<li>trascrivere le equazioni in formato compatibile con MathJax;</li>
+<li>chiudere l'ambiente stesso quando l'equazione è terminata.</li>
 </ul>
 
 <p align="justify">
-Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea <b>commodi consequatur?</b> Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?
+Particolare attenzione va prestata anche alla numerazione delle equazioni, in modo da poterne poi fare un riferimento puntuale nel testo.
+</p>
+
+<p align="justify">
+Nel paragrafo precedente spicca un'ulteriore feature! L'elenco numerato (o puntato). Anche questa è una feature fondamentale per i miei testi e che necessariamente deve poter essere trattata con il tool qui proposto. Il funzionamento è del tutto simile a quanto visto per l'ambiente equation: viene caricata la classe in grado di trattare elenchi puntati e numerati in tex2html; il file viene letto riga per riga; il corrispondente ambiente HTML viene attivato quando un elenco è presente nel testo; il contenuto viene correttamente suddiviso in items; l'ambiente viene chiuso quando vi è una chiusura dello stesso nel file latex.
+</p>
+
+<p align="justify">
+L'integrazione di ambiente matematico e di elenchi è una naturale evoluzione. Elenchi puntati o numerati possono avere equazioni al loro interno. Tali situazioni vengono gestite dal tool qui proposto con cross-check di attivazione e disattivazione degli ambienti, ben consapevoli che tipicamente <i>equation</i> può essere integrato in <i>itemize</i> o <i>enumerate</i>, mentre il contrario non è vero.
+</p>
+
+<p align="justify">
+Lo step successivo è l'ambiente figure. Figure possono essere inglobate nel testo latex usando includeGraphics. L'ambiente figure è attivato e disattivato come mostrato precedentemente per equation e itemize. La figura possiede la sua caption, la sua label. Più difficoltosa è la gestione della dimensione delle immagini, che in questo caso è lasciata al lettore (e sviluppatore) interessato perchè fortemente dipendente dalla struttura web entro le quali devono essere inserite. Proponiamo comunque un esempio qui di seguito, sapendo bene che il path per l'immagine potrebbe essere diverso tra quanto prodotto con il tool qui proposto, e la struttura della pagina web.
 </p>
 
 
-<center>
-<table style="width:80%;">
+<img src="cat.webp" class="box px-0 py-0 ml-auto mr-auto" width="900" title="Un esempio di immagine, con un esempio di caption." alt="Un esempio di immagine, con un esempio di caption.">
+
+<p align="justify">
+Si presti attenzione al fatto che, sapendo bene come in ambito web tutto sia sequenziale, e non essendoci bisogno di riposizionamento delle figure, nessuna particolare indicazione è stata data accanto alla dichiarazione dell'ambiente figure (e.g. [!ht]). Tali indicazioni, comunque, non sono supportate nel tool di conversione qui proposto.
+</p>
+
+<p align="justify">
+Passiamo agli ultimi due aspetti fondamentali: tabelle e script (agoritmi). Il primo dei due è estremamente facile. Un esempio di tabella si trova qui di seguito.
+</p>
+
+
+<div class="table-container">
+<table class="table is-bordered is-striped is-hoverable is-fullwidth"style="border: 2px solid rgb(140 140 140); font-family: arial, sans-serif; #border-collapse: collapse;">
 <tr>
-  <th>Patch</th>
-  <th>U<sub>x</sub> [m/s]</th>
-  <th>p [Pa]</th>
-  <th>T<sub>in</sub> [K]</th>
-  <th>Y<sub>C<sub>8</sub> H<sub>18</sub></sub> [-]</th>
-  <th>Y<sub>O<sub>2</sub></sub> [-]</th>
-  <th>Y<sub>N<sub>2</sub></sub> [-] </th>
+<th>Header1</th>
+<th>Header2</th>
+<th>Header3</th>
 </tr>
 <tr>
-  <td>Inlet</td>
-  <td>3.0</td>
-  <td>-</td>
-  <td>1000</td>
-  <td>aaa</td>
-  <td>bbb</td>
-  <td>ccc           </td>
+<td>Value1</td>
+<td>Value2</td>
+<td>$$\nabla \cdot \mathbf{u} = 0$$</td>
 </tr>
 <tr>
-  <td>Outlet</td>
-  <td>-</td>
-  <td>101325</td>
-  <td>-</td>
-  <td>aaa2</td>
-  <td>bbb2</td>
-  <td>ccc2          </td>
+<td>Value4</td>
+<td>Value5</td>
+<td>Value6</td>
 </tr>
 </table>
-</center>
-<style>
-table {
-  border: 2px solid rgb(140 140 140);
-  font-family: arial, sans-serif;
-  #border-collapse: collapse;
-}
-th,
+<p class="has-text-centered is-size-6 caption">My lovely table.</p>
+</div>
+
+<p align="justify">
+Come fatto per gli ambienti precedenti, l'ambiente table (e il sottoambiente tabular) viene riconosciuto, attivato per la costruzione in HTML, e chiuso (sia in latex che in HTML) sulla base delle funzioni begin ed end. Ovviamente le celle all'interno dell'ambiente possono contenere delle equazioni matematiche in riga (ovvero quelle delimitate da simboli di dollaro). Possiamo quindi passare ogni linee (o il contenuto di ogni cella) attraverso un filtro che permette di contrassegnare tali celle come contenenti ambiente matematico. Le equazioni vengono convertite in formato HTML, ottenendo il risultato mostrato nell'esempio qui sopra. La tabella possiede la sua caption, ed è quindi riprodotta correttamente (e in modo generale), dipendentemente dai settaggi css imposti nel sito web dentro al quale viene inserita.
+</p>
+
+<p align="justify">
+Ultimo step: gli algoritmi. Per niente facile. La spiegazione sarà anche un po' complessa. Ma vediamo subito un esempio:
+</p>
+
+            <figure class="highlight python hljs" id="code-7264962077513872">
+              <figcaption class="level is-mobile">
+                <div class="level-left">
+                  <span class="fold">
+                    <i class="fas fa-angle-down"></i>
+                  </span>
+                </div>
+                <div class="level-right">
+                  <a href="javascript:;" class="copy" title="Copy" data-clipboard-target="#code-7264962077513872 .code">
+                    <i class="fas fa-copy"></i>
+                  </a>
+                </div>
+              </figcaption>
+              <div class="highlight-body">
+                <table>
+                  <tbody>
+                    <tr>
+                      <td class="gutter">
+                        <pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre>
+                      </td>
+                      <td class="code">
+                        <pre><span class="line"><span class="kn">from</span> <span class="nn">pygments.formatters</span> <span class="kn">import</span> <span class="n">HtmlFormatter</span></span><br><span class="line"><span class="kn">from</span> <span class="nn">pygments.util</span> <span class="kn">import</span> <span class="n">ClassNotFound</span></span><br><span class="line"></span><br><span class="line"><span class="k">class</span> <span class="nc">Coding</span><span class="p">:</span></span><br><span class="line">    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span><br><span class="line">        <span class="bp">self</span><span class="o">.</span><span class="n">containsACode</span> <span class="o">=</span> <span class="kc">False</span></span><br></pre>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </figure>
+            th,
 td {
   border: 1px solid rgb(160 160 160);
 }
@@ -96,3 +174,58 @@ tr:nth-child(even) {
 </style>
 
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script> 
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/atom-one-light.min.css">
+
+        <script>
+        // Selecting all copy buttons
+        document.querySelectorAll('.copy').forEach(button => {
+            button.addEventListener('click', function() {
+                // Find the element with the correct ID for following copy
+                const codeElement = document.querySelector(this.getAttribute('data-clipboard-target'));
+                const range = document.createRange();
+                range.selectNode(codeElement);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                
+                try {
+                    // Copy selected text
+                    document.execCommand('copy');
+                    // Change the icon to point out the copy has been completed
+                    const icon = this.querySelector('i');
+                    icon.classList.remove('fa-copy');
+                    icon.classList.add('fa-check'); // ICON NOW CHECKMARKED
+                    setTimeout(() => {
+                        icon.classList.remove('fa-check');
+                        icon.classList.add('fa-copy'); 
+                    }, 2000);                       // AFTER 2s GO BACK TO STD COPY ICON
+                } catch (err) {
+                    console.error('Impossibile copiare il testo: ', err);
+                }
+                
+                window.getSelection().removeAllRanges();
+            });
+        });
+
+        // Selecting all fold/unfold buttons
+        document.querySelectorAll('.fold').forEach(foldButton => {
+            foldButton.addEventListener('click', function() {
+                // Find block to fold/unfold based on ID
+                const codeBlock = this.closest('figure').querySelector('.highlight-body');
+                const icon = this.querySelector('i');
+
+                // If visible -> make fold and change arrow
+                // else -> do the opposite
+                if (codeBlock.style.display !== 'none') {
+                    codeBlock.style.display = 'none';
+                    icon.classList.remove('fa-angle-down');
+                    icon.classList.add('fa-angle-right'); // >
+                } else {
+                    codeBlock.style.display = 'block';
+                    icon.classList.remove('fa-angle-right');
+                    icon.classList.add('fa-angle-down'); // v
+                }
+            });
+        });
+        </script>
+        
